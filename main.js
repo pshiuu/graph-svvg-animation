@@ -1,4 +1,3 @@
-
 // Custom Cursor
 document.addEventListener('DOMContentLoaded', (event) => {
     var customCursor = document.createElement('div');
@@ -98,7 +97,7 @@ const Gradient = (function () {
     }
 
     function onWindowResize() {
-        if (uniforms.u_resolution) {
+        if (uniforms && uniforms.u_resolution) {
             uniforms.u_resolution.value.x = window.innerWidth;
             uniforms.u_resolution.value.y = window.innerHeight;
         }
@@ -106,26 +105,30 @@ const Gradient = (function () {
     }
 
     function onMouseMove(event) {
-        if (uniforms.u_mouse) {
+        if (uniforms && uniforms.u_mouse) {
             uniforms.u_mouse.value.x = event.clientX / window.innerWidth;
             uniforms.u_mouse.value.y = 1.0 - event.clientY / window.innerHeight;
         }
     }
 
     function animate() {
+        if (uniforms) {
+            uniforms.u_time.value += 0.01;
+            const timeScale = uniforms.u_time.value * 0.05;
+            const xOffset = Math.sin(timeScale * 1.3) * Math.cos(timeScale * 0.8) * 2.0;
+            const yOffset = Math.cos(timeScale * 1.3) * Math.sin(timeScale * 0.9) * 2.0;
+            targetNoiseOffset.set(xOffset, yOffset);
+            uniforms.u_noiseOffset.value.lerp(targetNoiseOffset, 0.05);
+            renderer.render(scene, camera);
+        }
         requestAnimationFrame(animate);
-        uniforms.u_time.value += 0.01;
-        const timeScale = uniforms.u_time.value * 0.05;
-        const xOffset = Math.sin(timeScale * 1.3) * Math.cos(timeScale * 0.8) * 2.0;
-        const yOffset = Math.cos(timeScale * 1.3) * Math.sin(timeScale * 0.9) * 2.0;
-        targetNoiseOffset.set(xOffset, yOffset);
-        uniforms.u_noiseOffset.value.lerp(targetNoiseOffset, 0.05);
-        renderer.render(scene, camera);
     }
 
     function changeColor() {
         currentColorsIndex = (currentColorsIndex + 1) % colorsArray.length;
-        uniforms.u_colors.value = colorsArray[currentColorsIndex];
+        if (uniforms) {
+            uniforms.u_colors.value = colorsArray[currentColorsIndex];
+        }
     }
 
     function cleanup() {
