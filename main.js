@@ -318,7 +318,7 @@ function fadeOutAndDePixelate(ctx, sampleSize, duration) {
                 currentStep--;
                 setTimeout(step, interval);
             } else {
-                setTimeout(() => { resolve(canvas); }, 50);
+                resolve(canvas);
             }
         }
 
