@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Gradient Animation
+// gradient.js
+
 const Gradient = (function () {
     let scene, camera, renderer, uniforms;
     let targetNoiseOffset = new THREE.Vector2(0, 0);
@@ -19,11 +20,16 @@ const Gradient = (function () {
     const gradientCanvas = document.getElementById('gradient');
 
     const colorsArray = [
-        [new THREE.Color(0x419AFF), new THREE.Color(0x6F0009), new THREE.Color(0x6F0009), new THREE.Color(0x6F0009)],
-        [new THREE.Color(0x00ff00), new THREE.Color(0xff00ff), new THREE.Color(0x00ffff), new THREE.Color(0x800080)],
-        [new THREE.Color(0xffffff), new THREE.Color(0x000000), new THREE.Color(0x808080), new THREE.Color(0xffc0cb)],
+        [
+            new THREE.Color(0xFFFDD0), // Cream
+            new THREE.Color(0xADD8E6), // Light blue
+            new THREE.Color(0xADD8E6), // Light blue
+            new THREE.Color(0xADD8E6), // Light blue
+        ],
+        // Add more color arrays if needed for more variety
     ];
-    let currentColorsIndex = 0;
+    const originalColorsIndex = 0;
+    let currentColorsIndex = originalColorsIndex;
 
     function init() {
         const container = containerRef;
@@ -35,26 +41,39 @@ const Gradient = (function () {
 
         renderer = new THREE.WebGLRenderer({ canvas: gradientCanvas, alpha: true, preserveDrawingBuffer: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0x000000, 0);
+        renderer.setClearColor(0x000000, 0); // Transparent background
+
+        // Random seed for each visit
+        const randomSeed = Math.random();
 
         uniforms = {
             u_time: { type: "f", value: 1.0 },
-            u_resolution: { type: "v2", value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-            u_mouse: { type: "v2", value: new THREE.Vector2(0.5, 0.5) },
+            u_resolution: {
+                type: "v2",
+                value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+            },
+            u_mouse: { type: "v2", value: new THREE.Vector2(0.5, 0.5) }, // Center initially
             u_colors: { type: "v3v", value: colorsArray[currentColorsIndex] },
-            u_noiseOffset: { type: "v2", value: new THREE.Vector2(0.0, 0.0) },
+            u_noiseOffset: { type: "v2", value: new THREE.Vector2(0.0, 0.0) }, // Use THREE.Vector2
+            u_seed: { type: "f", value: randomSeed }, // Add a seed for randomness
         };
 
-        const vertexShader = `void main() { gl_Position = vec4(position, 1.0); }`;
+        const vertexShader = `
+            void main() {
+                gl_Position = vec4(position, 1.0);
+            }
+        `;
+
         const fragmentShader = `
             uniform float u_time;
             uniform vec2 u_resolution;
             uniform vec2 u_mouse;
             uniform vec3 u_colors[4];
             uniform vec2 u_noiseOffset;
+            uniform float u_seed;
 
             float random(vec2 st) {
-                return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+                return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123 + u_seed);
             }
 
             float noise(vec2 st) {
@@ -74,30 +93,39 @@ const Gradient = (function () {
 
                 vec2 mouseInfluence = u_mouse * 0.5 - 1.0;
                 vec2 pos = st * 3.0 + u_noiseOffset;
+
+                // Add time-based noise offset
                 pos += vec2(sin(u_time * 0.1), cos(u_time * 0.15)) * 0.2;
+
                 float n = noise(pos + mouseInfluence * 0.5 * sin(u_time * 0.5));
+
                 color = mix(u_colors[0], u_colors[1], n);
                 color = mix(color, u_colors[2], n * 0.5);
                 color = mix(color, u_colors[3], n * 0.25);
+
                 color += vec3(random(st) * 0.1);
+
                 gl_FragColor = vec4(color, 1.0);
             }
         `;
 
         const geometry = new THREE.PlaneGeometry(2, 2);
-        const material = new THREE.ShaderMaterial({ uniforms: uniforms, vertexShader: vertexShader, fragmentShader: fragmentShader });
+        const material = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+        });
+
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
 
         onWindowResize();
         window.addEventListener("resize", onWindowResize, false);
         window.addEventListener("mousemove", onMouseMove, false);
-
-        animate();
     }
 
     function onWindowResize() {
-        if (uniforms && uniforms.u_resolution) {
+        if (uniforms.u_resolution) {
             uniforms.u_resolution.value.x = window.innerWidth;
             uniforms.u_resolution.value.y = window.innerHeight;
         }
@@ -105,30 +133,31 @@ const Gradient = (function () {
     }
 
     function onMouseMove(event) {
-        if (uniforms && uniforms.u_mouse) {
+        if (uniforms.u_mouse) {
+            // Normalize mouse position to range [0, 1]
             uniforms.u_mouse.value.x = event.clientX / window.innerWidth;
-            uniforms.u_mouse.value.y = 1.0 - event.clientY / window.innerHeight;
+            uniforms.u_mouse.value.y = 1.0 - event.clientY / window.innerHeight; // Invert Y axis
         }
     }
 
     function animate() {
-        if (uniforms && uniforms.u_time) {
-            uniforms.u_time.value += 0.01;
-            const timeScale = uniforms.u_time.value * 0.05;
-            const xOffset = Math.sin(timeScale * 1.3) * Math.cos(timeScale * 0.8) * 2.0;
-            const yOffset = Math.cos(timeScale * 1.3) * Math.sin(timeScale * 0.9) * 2.0;
-            targetNoiseOffset.set(xOffset, yOffset);
-            uniforms.u_noiseOffset.value.lerp(targetNoiseOffset, 0.05);
-            renderer.render(scene, camera);
-        }
         requestAnimationFrame(animate);
+        uniforms.u_time.value += 0.01;
+
+        // Update target noise offset based on time using a combination of sine and cosine functions
+        const timeScale = uniforms.u_time.value * 0.05;
+        const xOffset = Math.sin(timeScale * 1.3) * Math.cos(timeScale * 0.8) * 2.0;
+        const yOffset = Math.cos(timeScale * 1.3) * Math.sin(timeScale * 0.9) * 2.0;
+        targetNoiseOffset.set(xOffset, yOffset);
+
+        uniforms.u_noiseOffset.value.lerp(targetNoiseOffset, 0.05);
+
+        renderer.render(scene, camera);
     }
 
     function changeColor() {
         currentColorsIndex = (currentColorsIndex + 1) % colorsArray.length;
-        if (uniforms) {
-            uniforms.u_colors.value = colorsArray[currentColorsIndex];
-        }
+        uniforms.u_colors.value = colorsArray[currentColorsIndex];
     }
 
     function cleanup() {
@@ -136,12 +165,18 @@ const Gradient = (function () {
         window.removeEventListener("mousemove", onMouseMove);
     }
 
-    return { init, animate, changeColor, cleanup };
+    return {
+        init: init,
+        animate: animate,
+        changeColor: changeColor,
+        cleanup: cleanup,
+    };
 })();
 
-document.addEventListener('DOMContentLoaded', () => {
-    Gradient.init();
-});
+// Initialize and start the animation
+Gradient.init();
+Gradient.animate();
+
 
 // Header Menu
 function initHeader() {
