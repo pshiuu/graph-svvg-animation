@@ -228,7 +228,8 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 
-$(document).ready(function() {
+
+ $(document).ready(function() {
     const minLoaderTime = 2000; // Minimum time the loader should stay
     const startTime = new Date().getTime();
     const lastVisit = localStorage.getItem('lastVisit');
@@ -257,6 +258,7 @@ $(document).ready(function() {
         localStorage.setItem('lastVisit', now);
     }
 });
+
 
 // pixel.js
 export default function captureAndRender(callback) {
@@ -427,44 +429,84 @@ export function fadeOutAndDePixelate(ctx, sampleSize, duration) {
 }
 
 
+if (window.innerWidth > 991) {
+  const $bigBall = document.querySelector(".cursor__ball--big");
+  const $hoverables = document.querySelectorAll(".hoverable");
 
-const $bigBall = document.querySelector(".cursor__ball--big");
-const $smallBall = document.querySelector(".cursor__ball--small");
-const $hoverables = document.querySelectorAll(".hoverable");
+  // Create trail dots with images
+  const dots = [];
+  const cursor = { x: 0, y: 0 };
+  const dotSize = 30; // Adjust this to match the size of your dots
 
-// Listeners
-document.body.addEventListener("mousemove", onMouseMove);
-for (let i = 0; i < $hoverables.length; i++) {
-    $hoverables[i].addEventListener("mouseenter", onMouseHover);
-    $hoverables[i].addEventListener("mouseleave", onMouseHoverOut);
+  for (let i = 0; i < 40; i++) {
+      const dot = document.createElement("div");
+      dot.className = "cursor-trail";
+      const img = document.createElement("img");
+      img.src = "https://cdn.prod.website-files.com/6638848fab8938514ff16754/667a0e688cddcfa6596749a9_Rhombus.svg";
+      img.className = "cursor-svg";
+      dot.appendChild(img);
+      document.body.appendChild(dot);
+      dots.push(dot);
+  }
+
+  // Listeners
+  document.addEventListener("mousemove", onMouseMove);
+  for (let i = 0; i < $hoverables.length; i++) {
+      $hoverables[i].addEventListener("mouseenter", onMouseHover);
+      $hoverables[i].addEventListener("mouseleave", onMouseHoverOut);
+  }
+
+  // Move the cursor
+  function onMouseMove(e) {
+      cursor.x = e.clientX;
+      cursor.y = e.clientY;
+
+      updateCursorPosition();
+  }
+
+  // Update cursor and trail positions
+  function updateCursorPosition() {
+      const x = cursor.x + window.scrollX;
+      const y = cursor.y + window.scrollY;
+
+      gsap.to($bigBall, { duration: 0.1, x: x - 15, y: y - 15 });
+      repositionTrail(x, y);
+  }
+
+  // Reposition the trail based on the cursor position
+  function repositionTrail(x, y) {
+      dots.forEach((dot, index) => {
+          const nextDot = dots[index + 1] || dots[0];
+
+          // Fine-tune these values if necessary
+          const dotAdjustmentX = dotSize / 4; // Adjust based on the observed offset
+          const dotAdjustmentY = dotSize / 2; // Adjust based on the observed offset
+
+          dot.style.left = `${x - dotAdjustmentX}px`;
+          dot.style.top = `${y - dotAdjustmentY}px`;
+
+          x += (nextDot.offsetLeft - dot.offsetLeft) * 0.5;
+          y += (nextDot.offsetTop - dot.offsetTop) * 0.5;
+      });
+  }
+
+  // Hover an element
+  function onMouseHover() {
+      gsap.to($bigBall, { duration: 0.3, scale: 4 });
+  }
+
+  function onMouseHoverOut() {
+      gsap.to($bigBall, { duration: 0.3, scale: 1 });
+  }
+
+  // Draw the trail
+  function draw() {
+      updateCursorPosition();
+  }
+
+  setInterval(draw, 15);
 }
 
-// Move the cursor
-function onMouseMove(e) {
-    const x = e.clientX; // Use clientX instead of pageX
-    const y = e.clientY; // Use clientY instead of pageY
-    
-    TweenMax.to($bigBall, 0.4, {
-        x: x - 15,
-        y: y - 15
-    });
-    TweenMax.to($smallBall, 0.1, {
-        x: x - 5,
-        y: y - 7
-    });
-}
-
-// Hover an element
-function onMouseHover() {
-    TweenMax.to($bigBall, 0.3, {
-        scale: 4
-    });
-}
-function onMouseHoverOut() {
-    TweenMax.to($bigBall, 0.3, {
-        scale: 1
-    });
-}
 
 barba.init({
     transitions: [{
@@ -502,126 +544,243 @@ barba.init({
                     resolve();
                 }
             });
+        },
+        after(data) {
+            // Ensure Webflow interactions are reinitialized after the transition completes
+            Webflow.ready();
+            Webflow.require('ix2').init(); // Reinitialize Webflow IX2 (Interactions 2.0)
         }
     }],
     views: [
         {
-            namespace: 'meteor-2',
+            namespace: 'home',
+            beforeEnter(data) {
+
+                const homeplayers = Array.from(document.querySelectorAll('.plyr')).map(p => {
+                    return new Plyr(p, {
+                        controls: [
+                            'play-large', 
+                            'play', 
+                            'progress', 
+                            'current-time', 
+                            'duration', 
+                            'mute', 
+                            'volume', 
+                            'airplay', 
+                            'fullscreen'
+                        ],
+                        autoplay: false,
+                        playsinline: false,
+                        ratio: '16:9'
+                    });
+                });
+                console.log('Entering home');
+            },
             afterEnter(data) {
-                // Your custom code for the specific site
-                    const breakPoint = "53em";
-                    const mm = gsap.matchMedia();
+                console.log('Entered home');
+                // Custom code for the home namespace after the transition finishes
+            }
+        },
+        {
+            namespace: 'meteor',
+            beforeEnter(data) {
+                var swipermeteor = new Swiper(".swiper.is-autoplay", {
+                    slidesPerView: 4,
+                    grabCursor: true,
+                    speed: 5000,
+                    spaceBetween: 30,
+                    freeMode: true,
+                    loop: true,
+                    centeredSlides: true,
+                    autoplay: {
+                      delay: 0,
+                      disableOnInteraction: false
+                    }
+                  });
+            },
+            afterEnter(data) {
+                console.log('Entered meteor');
+                // Custom code for the meteor namespace after the transition finishes
+            }
+        },
+        {
+            namespace: 'work',
+            beforeEnter(data) {
+                console.log('Entering work');
+                    const players = Array.from(document.querySelectorAll('.past-work-plyr-wrap .plyr-past')).map(p => {
+                        return new Plyr(p, {
+                            controls: [
+                                
+                                'play',  
+                                'progress', 
+                                'current-time', 
+                                'mute', 
+                                'airplay', 
+                                'fullscreen'
+                            ],
+                            autoplay: false,
+                            playsinline: false,
+                            ratio: '16:9'
+                        });
+                    });
+                    
+            },
+            afterEnter(data) {
+                console.log('Entered work');
+                // Custom code for the work namespace after the transition finishes
+            }
+        },
+        {
+            namespace: 'about',
+            beforeEnter(data) {
+                console.log('Entering about');
+                const p1 = new Swiper(".swiper.is-p1", {
+                    slidesPerView: 1,
+                    autoHeight: true,
+                    speed: 600,
+                    effect: "fade",
+                    fadeEffect: {
+                        crossFade: true
+                    },
+                });
 
-                    mm.add(
-                        {
-                            isDesktop: `(min-width: ${breakPoint})`,
-                            isMobile: `(max-width: ${breakPoint})`,
-                        },
-                        (context) => {
-                            let { isDesktop } = context.conditions;
-                            const image = document.querySelector(".card__img");
-                            const cardList = gsap.utils.toArray(".card");
-                            const count = cardList.length;
-                            const sliceAngle = (2 * Math.PI) / count;
-                            const radius1 = 50 + image.clientHeight / 2;
-                            const radius2 = isDesktop ? 250 - radius1 : 180 - radius1;
+                const p2 = new Swiper(".swiper.is-p2", {
+                    slidesPerView: 1,
+                    autoHeight: true,
+                    speed: 600,
+                    effect: "fade",
+                    fadeEffect: {
+                        crossFade: true
+                    },
+                });
 
-                            gsap
-                                .timeline()
-                                .from(cardList, {
-                                    y: window.innerHeight / 2 + image.clientHeight * 1.5,
-                                    rotateX: -180,
-                                    stagger: 0.1,
-                                    duration: 0.5,
-                                    opacity: 0.8,
-                                    scale: 3,
-                                })
-                                .set(cardList, {
-                                    transformOrigin: `center ${radius1 + image.clientHeight / 2}px`,
-                                })
-                                .set(".group", {
-                                    transformStyle: "preserve-3d",
-                                })
-                                .to(cardList, {
-                                    y: -radius1,
-                                    duration: 0.5,
-                                    ease: "power1.out",
-                                })
-                                .to(
-                                    cardList,
-                                    {
-                                        rotation: (index) => {
-                                            return (index * 360) / count;
-                                        },
-                                        rotateY: 15,
-                                        duration: 1,
-                                        ease: "power1.out",
-                                    },
-                                    "<"
-                                )
-                                .to(cardList, {
-                                    x: (index) => {
-                                        return Math.round(
-                                            radius2 * Math.cos(sliceAngle * index - Math.PI / 4)
-                                        );
-                                    },
-                                    y: (index) => {
-                                        return (
-                                            Math.round(
-                                                radius2 * Math.sin(sliceAngle * index - Math.PI / 4)
-                                            ) - radius1
-                                        );
-                                    },
-                                    rotation: (index) => {
-                                        return (index + 1) * (360 / count);
-                                    },
-                                })
-                                .to(
-                                    cardList,
-                                    {
-                                        rotateY: 180,
-                                        opacity: 0.8,
-                                        duration: 1,
-                                    },
-                                    "<"
-                                )
-                                .from(
-                                    ".headings",
-                                    {
-                                        opacity: 0,
-                                        filter: "blur(60px)",
-                                        duration: 1,
-                                    },
-                                    "<"
-                                )
-                                .to(cardList, {
-                                    repeat: -1,
-                                    duration: 2,
-                                    onRepeat: () => {
-                                        gsap.to(cardList[Math.floor(Math.random() * count)], {
-                                            rotateY: "+=180",
-                                        });
-                                    },
-                                })
-                                .to(
-                                    ".group",
-                                    {
-                                        rotation: 360,
-                                        duration: 20,
-                                        repeat: -1,
-                                        ease: "none",
-                                    },
-                                    "<-=2"
-                                );
+                var bg = new Swiper(".swiper.is-bg-img", {
+                    slidesPerView: 1,
+                    spaceBetween: 30,
+                    effect: "fade",
+                    controller: {
+                        control: [p1, p2],
+                    },
+                    navigation: {
+                        nextEl: ".swiper-btn.is-next",
+                        prevEl: ".swiper-btn.is-back",
+                    },
+                });
 
-                            return () => {};
-                        }
-                    );
-         
+                function updateButtonVisibility(swiper) {
+                    const totalSlides = swiper.slides.length;
+                    const activeIndex = swiper.activeIndex;
+                    
+                    const nextButton = document.querySelector('.swiper-btn.is-next');
+                    const backButton = document.querySelector('.swiper-btn.is-back');
+
+                    if (activeIndex === 0) {
+                        backButton.style.display = 'none';
+                    } else {
+                        backButton.style.display = 'flex';
+                    }
+
+                    if (activeIndex === totalSlides - 1) {
+                        nextButton.style.display = 'none';
+                    } else {
+                        nextButton.style.display = 'flex';
+                    }
+                }
+
+                // Initial check
+                updateButtonVisibility(bg);
+
+                // Update button visibility on slide change
+                bg.on('slideChange', function() {
+                    updateButtonVisibility(bg);
+                });
+            },
+            afterEnter(data) {
+                console.log('Entered about');
+                // Custom code for the about namespace after the transition finishes
+            }
+        },
+        {
+            namespace: 'contact',
+            beforeEnter(data) {
+                console.log('Entering contact');
+                // Custom code for the contact namespace before the transition finishes
+            },
+            afterEnter(data) {
+                console.log('Entered contact');
+                // Custom code for the contact namespace after the transition finishes
+            }
+        },
+        {
+            namespace: 'projects',
+            beforeEnter(data) {
+                console.log('Entering projects');
+                const meteorcms = Array.from(document.querySelectorAll('.meteor-video-cms')).map(p => {
+                    return new Plyr(p, {
+                        controls: [
+                            'play-large', 
+                            'progress', 
+                            'current-time', 
+                            'mute', 
+                            'fullscreen'
+                        ],
+                        autoplay: false,
+                        playsinline: false,
+                        ratio: '9:16'
+                    });
+                });
+                var swipermore = new Swiper(".swiper.is-more", {
+                    slidesPerView: 3,
+                    grabCursor: true,
+                    speed: 5000,
+                    spaceBetween: 30,
+                    freeMode: true,
+                    loop: true,
+                    centeredSlides: true,
+                    autoplay: {
+                      delay: 0,
+                      disableOnInteraction: false
+                    }
+                  });
+            },
+            afterEnter(data) {
+                console.log('Entered projects');
+                // Custom code for the projects namespace after the transition finishes
+            }
+        },
+        {
+            namespace: 'pastwork',
+            beforeEnter(data) {
+                console.log('Entering pastwork');  
+                const pastplayer = Array.from(document.querySelectorAll('.plyr-current')).map(p => {
+                    return new Plyr(p, {
+                        controls: [
+                            'play-large', 
+                            'play', 
+                            'mute', 
+                            'fullscreen',
+                            'settings',
+                        ],
+                        autoplay: false,
+                        playsinline: false,
+                        
+                    });
+                });
+            },
+            afterEnter(data) {
+                console.log('Entered pastwork');
+                // Custom code for the pastwork namespace after the transition finishes
             }
         }
     ]
 });
 
+// Attach the ajaxSend and ajaxComplete handlers globally
+$(document).ajaxSend(function() {
+    Webflow.destroy();
+});
 
-
+$(document).ajaxComplete(function() {
+    Webflow.ready();
+    Webflow.require('ix2').init(); // Reinitialize Webflow IX2 (Interactions 2.0)
+});
