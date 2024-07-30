@@ -585,7 +585,7 @@ barba.init({
             namespace: 'meteor',
             beforeEnter(data) {
          var swipermeteor = new Swiper(".swiper.is-autoplay", {
-  slidesPerView: 4,
+  slidesPerView: 1,
   grabCursor: true,
   speed: 5000,
   spaceBetween: 30,
@@ -597,18 +597,15 @@ barba.init({
     disableOnInteraction: false
   },
   breakpoints: {
+      767: {
+      slidesPerView: 2
+    },
+       991: {
+      slidesPerView: 3
+    },
     1280: {
       slidesPerView: 4
     },
-    991: {
-      slidesPerView: 3
-    },
-    767: {
-      slidesPerView: 2
-    },
-    0: {
-      slidesPerView: 1
-    }
   }
 });
 
