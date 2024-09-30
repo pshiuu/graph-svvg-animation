@@ -228,36 +228,59 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 
-
- $(document).ready(function() {
+  //pageloader
+  $(document).ready(function() {
     const minLoaderTime = 2000; // Minimum time the loader should stay
     const startTime = new Date().getTime();
     const lastVisit = localStorage.getItem('lastVisit');
     const now = new Date().getTime();
     const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    let videosLoaded = 0;
+    const totalVideos = $('video').length; // Count the number of video elements
+
+    // Function to hide loader once all videos are loaded and minimum loader time has passed
+    function hideLoader() {
+        const currentTime = new Date().getTime();
+        const elapsedTime = currentTime - startTime;
+        const remainingTime = minLoaderTime - elapsedTime;
+
+        setTimeout(function() {
+            $('.page-loader').fadeOut(500, function() {
+                $('.content').fadeIn(500);
+            });
+        }, remainingTime > 0 ? remainingTime : 0);
+    }
 
     // Check if the last visit was within the past 24 hours
     if (lastVisit && (now - lastVisit < oneDay)) {
         $('.page-loader').hide();
         $('.content').show();
     } else {
-        // If not, show the loader and then hide it after the minimum time
+        // If not, show the loader and then wait for videos to load
         $(window).on('load', function() {
-            const currentTime = new Date().getTime();
-            const elapsedTime = currentTime - startTime;
-            const remainingTime = minLoaderTime - elapsedTime;
+            if (totalVideos > 0) {
+                // Wait for each video to fully load
+                $('video').each(function() {
+                    $(this).on('loadeddata', function() {
+                        videosLoaded++;
 
-            setTimeout(function() {
-                $('.page-loader').fadeOut(500, function() {
-                    $('.content').fadeIn(500);
+                        // If all videos are loaded, hide the loader
+                        if (videosLoaded === totalVideos) {
+                            hideLoader();
+                        }
+                    });
                 });
-            }, remainingTime > 0 ? remainingTime : 0);
+            } else {
+                // If there are no videos, just hide the loader after minimum time
+                hideLoader();
+            }
         });
 
         // Update the last visit time in localStorage
         localStorage.setItem('lastVisit', now);
     }
 });
+
 
 
 // pixel.js
@@ -555,23 +578,66 @@ barba.init({
         {
             namespace: 'home',
             beforeEnter(data) {
-
-                const homeplayers = Array.from(document.querySelectorAll('.plyr')).map(p => {
-                    return new Plyr(p, {
-                        controls: [
-                            'play-large', 
-                            'play', 
-                            'progress', 
-                            'current-time', 
-                            'duration', 
-                            'mute', 
-                            'volume', 
-                            'airplay', 
-                            'fullscreen'
-                        ],
-                        autoplay: false,
-                        playsinline: false,
-                        ratio: '16:9'
+                $(document).ready(function() {
+                    // Select all card-home elements
+                    var $cards = $('.card-home');
+                
+                    // Function to get random positions within the landing-wrap container
+                    function getRandomPosition(containerWidth, containerHeight, cardWidth, cardHeight) {
+                        var randomX = Math.floor(Math.random() * (containerWidth - cardWidth));
+                        var randomY = Math.floor(Math.random() * (containerHeight - cardHeight));
+                
+                        return { x: randomX, y: randomY };
+                    }
+                
+                    // Function to pop in, stay visible, scale out, then pop in again at a different position
+                    function popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight) {
+                        // Get random position for the card
+                        var randomPosition = getRandomPosition(containerWidth, containerHeight, cardWidth, cardHeight);
+                
+                        // Apply the random position and scale in
+                        $card.css({
+                            'transform': 'translate(' + randomPosition.x + 'px, ' + randomPosition.y + 'px) scale(1)'
+                        }).show(); // Ensure the card is visible
+                
+                        // After 10 seconds, scale out (disappear)
+                        setTimeout(function() {
+                            $card.css({
+                                'transform': 'scale(0)' // Scale down to disappear
+                            });
+                
+                            // After scaling out, reappear in a new position after 2 seconds
+                            setTimeout(function() {
+                                popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
+                            }, 2000); // Reappear after 2 seconds
+                        }, 10000); // Stay visible for 10 seconds
+                    }
+                
+                    // Function to initiate the pop-in/out cycle for all cards
+                    function initiatePopInOutCycle() {
+                        var $container = $('.landing-wrap');
+                        var containerWidth = $container.width();
+                        var containerHeight = $container.height();
+                
+                        // Iterate over each card and initiate the pop in/out effect
+                        $cards.each(function(index) {
+                            var $card = $(this);
+                            var cardWidth = $card.outerWidth();
+                            var cardHeight = $card.outerHeight();
+                
+                            // Apply a slight delay for each card to create a staggered effect
+                            setTimeout(function() {
+                                popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
+                            }, index * 1500); // Stagger the start of each card by 1.5 seconds
+                        });
+                    }
+                
+                    // Call the function to initiate the pop in/out effect
+                    initiatePopInOutCycle();
+                
+                    // Recalculate positions on window resize for responsiveness
+                    $(window).resize(function() {
+                        initiatePopInOutCycle(); // Re-run the function on window resize
                     });
                 });
                 console.log('Entering home');
