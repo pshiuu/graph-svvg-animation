@@ -230,13 +230,44 @@ document.addEventListener("DOMContentLoaded", function() {
 
   //pageloader
   $(document).ready(function() {
-    const minLoaderTime = 2000; // Minimum time the loader should stay
+    const firstVisitMinTime = 5000; // Minimum time the loader should stay on first visit (5 seconds)
+    const subsequentVisitMinTime = 2000; // Minimum time the loader should stay on subsequent visits (2 seconds)
     const startTime = new Date().getTime();
     const lastVisit = localStorage.getItem('lastVisit');
     const now = new Date().getTime();
     const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
     let videosLoaded = 0;
     const totalVideos = $('video').length; // Count the number of video elements
+
+    // Function to get the minimum loader time based on the visit history
+    function getMinLoaderTime() {
+        return lastVisit && (now - lastVisit < oneDay) ? subsequentVisitMinTime : firstVisitMinTime;
+    }
+
+    const minLoaderTime = getMinLoaderTime(); // Determine loader time
+
+    // Animate the .loading-text (shuffle animation)
+    function animateLoadingText() {
+        const loadingText = document.querySelector(".loading-text");
+        if (loadingText) {
+            const splitText = new SplitType(loadingText, { types: "chars" });
+            const chars = splitText.chars;
+
+            chars.forEach((char, index) => {
+                char.style.animation = `shuffle 1s steps(10) ${index * 0.05}s infinite alternate-reverse`;
+            });
+        }
+    }
+
+    // Example keyframes for animations
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes shuffle {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
 
     // Function to hide loader once all videos are loaded and minimum loader time has passed
     function hideLoader() {
@@ -253,10 +284,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Check if the last visit was within the past 24 hours
     if (lastVisit && (now - lastVisit < oneDay)) {
+        // Hide the loader on subsequent visits within 24 hours
         $('.page-loader').hide();
         $('.content').show();
     } else {
-        // If not, show the loader and then wait for videos to load
+        // Show the loader for first visits or visits after 24 hours
+        animateLoadingText(); // Start the shuffle animation for loading text
+
         $(window).on('load', function() {
             if (totalVideos > 0) {
                 // Wait for each video to fully load
@@ -280,6 +314,9 @@ document.addEventListener("DOMContentLoaded", function() {
         localStorage.setItem('lastVisit', now);
     }
 });
+
+
+
 
 
 
@@ -592,7 +629,7 @@ barba.init({
 
     // Function to get a random scale between 1 and 2
     function getRandomScale() {
-        return Math.random() * (2 - 1) + 1; // Random number between 1 and 2
+        return Math.random() * (1.5 - 1) + 1; // Random number between 1 and 2
     }
 
     // Function to pop in, stay visible, disappear, then pop in again at a different position
@@ -718,71 +755,10 @@ barba.init({
         {
             namespace: 'about',
             beforeEnter(data) {
-                console.log('Entering about');
-                const p1 = new Swiper(".swiper.is-p1", {
-                    slidesPerView: 1,
-                    autoHeight: true,
-                    speed: 600,
-                    effect: "fade",
-                    fadeEffect: {
-                        crossFade: true
-                    },
-                });
 
-                const p2 = new Swiper(".swiper.is-p2", {
-                    slidesPerView: 1,
-                    autoHeight: true,
-                    speed: 600,
-                    effect: "fade",
-                    fadeEffect: {
-                        crossFade: true
-                    },
-                });
-
-                var bg = new Swiper(".swiper.is-bg-img", {
-                    slidesPerView: 1,
-                    spaceBetween: 30,
-                    effect: "fade",
-                    controller: {
-                        control: [p1, p2],
-                    },
-                    navigation: {
-                        nextEl: ".swiper-btn.is-next",
-                        prevEl: ".swiper-btn.is-back",
-                    },
-                });
-
-                function updateButtonVisibility(swiper) {
-                    const totalSlides = swiper.slides.length;
-                    const activeIndex = swiper.activeIndex;
-                    
-                    const nextButton = document.querySelector('.swiper-btn.is-next');
-                    const backButton = document.querySelector('.swiper-btn.is-back');
-
-                    if (activeIndex === 0) {
-                        backButton.style.display = 'none';
-                    } else {
-                        backButton.style.display = 'flex';
-                    }
-
-                    if (activeIndex === totalSlides - 1) {
-                        nextButton.style.display = 'none';
-                    } else {
-                        nextButton.style.display = 'flex';
-                    }
-                }
-
-                // Initial check
-                updateButtonVisibility(bg);
-
-                // Update button visibility on slide change
-                bg.on('slideChange', function() {
-                    updateButtonVisibility(bg);
-                });
             },
             afterEnter(data) {
-                console.log('Entered about');
-                // Custom code for the about namespace after the transition finishes
+          
             }
         },
         {
