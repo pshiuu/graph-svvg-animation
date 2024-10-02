@@ -579,67 +579,74 @@ barba.init({
             namespace: 'home',
             beforeEnter(data) {
                 $(document).ready(function() {
-                    // Select all card-home elements
-                    var $cards = $('.card-home');
-                
-                    // Function to get random positions within the landing-wrap container
-                    function getRandomPosition(containerWidth, containerHeight, cardWidth, cardHeight) {
-                        var randomX = Math.floor(Math.random() * (containerWidth - cardWidth));
-                        var randomY = Math.floor(Math.random() * (containerHeight - cardHeight));
-                
-                        return { x: randomX, y: randomY };
-                    }
-                
-                    // Function to pop in, stay visible, scale out, then pop in again at a different position
-                    function popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight) {
-                        // Get random position for the card
-                        var randomPosition = getRandomPosition(containerWidth, containerHeight, cardWidth, cardHeight);
-                
-                        // Apply the random position and scale in
-                        $card.css({
-                            'transform': 'translate(' + randomPosition.x + 'px, ' + randomPosition.y + 'px) scale(1)'
-                        }).show(); // Ensure the card is visible
-                
-                        // After 10 seconds, scale out (disappear)
-                        setTimeout(function() {
-                            $card.css({
-                                'transform': 'scale(0)' // Scale down to disappear
-                            });
-                
-                            // After scaling out, reappear in a new position after 2 seconds
-                            setTimeout(function() {
-                                popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
-                            }, 2000); // Reappear after 2 seconds
-                        }, 10000); // Stay visible for 10 seconds
-                    }
-                
-                    // Function to initiate the pop-in/out cycle for all cards
-                    function initiatePopInOutCycle() {
-                        var $container = $('.landing-wrap');
-                        var containerWidth = $container.width();
-                        var containerHeight = $container.height();
-                
-                        // Iterate over each card and initiate the pop in/out effect
-                        $cards.each(function(index) {
-                            var $card = $(this);
-                            var cardWidth = $card.outerWidth();
-                            var cardHeight = $card.outerHeight();
-                
-                            // Apply a slight delay for each card to create a staggered effect
-                            setTimeout(function() {
-                                popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
-                            }, index * 1500); // Stagger the start of each card by 1.5 seconds
-                        });
-                    }
-                
-                    // Call the function to initiate the pop in/out effect
-                    initiatePopInOutCycle();
-                
-                    // Recalculate positions on window resize for responsiveness
-                    $(window).resize(function() {
-                        initiatePopInOutCycle(); // Re-run the function on window resize
-                    });
-                });
+    // Select all card-home elements
+    var $cards = $('.card-home');
+
+    // Function to get random positions within the landing-wrap container
+    function getRandomPosition(containerWidth, containerHeight, cardWidth, cardHeight) {
+        var randomX = Math.floor(Math.random() * (containerWidth - cardWidth));
+        var randomY = Math.floor(Math.random() * (containerHeight - cardHeight));
+
+        return { x: randomX, y: randomY };
+    }
+
+    // Function to get a random scale between 1 and 2
+    function getRandomScale() {
+        return Math.random() * (2 - 1) + 1; // Random number between 1 and 2
+    }
+
+    // Function to pop in, stay visible, disappear, then pop in again at a different position
+    function popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight) {
+        // Get random position and random scale for the card
+        var randomPosition = getRandomPosition(containerWidth, containerHeight, cardWidth, cardHeight);
+        var randomScale = getRandomScale();
+
+        // Apply the random position and random scale
+        $card.css({
+            'transform': 'translate(' + randomPosition.x + 'px, ' + randomPosition.y + 'px) scale(' + randomScale + ')'
+        }).show(); // Ensure the card is visible
+
+        // After 10 seconds, scale out (disappear)
+        setTimeout(function() {
+            $card.css({
+                'transform': 'scale(0)' // Scale down to disappear
+            });
+
+            // After scaling out, reappear in a new position after 2 seconds
+            setTimeout(function() {
+                popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
+            }, 2000); // Reappear after 2 seconds
+        }, 10000); // Stay visible for 10 seconds
+    }
+
+    // Function to initiate the pop-in/out cycle for all cards
+    function initiatePopInOutCycle() {
+        var $container = $('.landing-wrap');
+        var containerWidth = $container.width();
+        var containerHeight = $container.height();
+
+        // Iterate over each card and initiate the pop in/out effect
+        $cards.each(function(index) {
+            var $card = $(this);
+            var cardWidth = $card.outerWidth();
+            var cardHeight = $card.outerHeight();
+
+            // Apply a slight delay for each card to create a staggered effect
+            setTimeout(function() {
+                popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
+            }, index * 1500); // Stagger the start of each card by 1.5 seconds
+        });
+    }
+
+    // Call the function to initiate the pop in/out effect
+    initiatePopInOutCycle();
+
+    // Recalculate positions on window resize for responsiveness
+    $(window).resize(function() {
+        initiatePopInOutCycle(); // Re-run the function on window resize
+    });
+});
+
                 console.log('Entering home');
             },
             afterEnter(data) {
