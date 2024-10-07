@@ -652,8 +652,8 @@ barba.init({
             // After scaling out, reappear in a new position after 2 seconds
             setTimeout(function() {
                 popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
-            }, 2000); // Reappear after 2 seconds
-        }, 10000); // Stay visible for 10 seconds
+            }, 5000); // Reappear after 5 seconds
+        }, 20000); // Stay visible for 20 seconds
     }
 
     // Function to initiate the pop-in/out cycle for all cards
