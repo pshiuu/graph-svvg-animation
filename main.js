@@ -616,7 +616,7 @@ barba.init({
             namespace: 'home',
             beforeEnter(data) {
                 $(document).ready(function() {
-    // Select all card-home elements
+    
     var $cards = $('.card-home');
 
     // Function to get random positions within the landing-wrap container
@@ -627,7 +627,7 @@ barba.init({
         return { x: randomX, y: randomY };
     }
 
-    // Function to get a random scale between 1 and 2
+    
     function getRandomScale() {
         return Math.random() * (1.5 - 1) + 1; // Random number between 1 and 2
     }
@@ -678,17 +678,13 @@ barba.init({
     // Call the function to initiate the pop in/out effect
     initiatePopInOutCycle();
 
-    // Recalculate positions on window resize for responsiveness
-    $(window).resize(function() {
-        initiatePopInOutCycle(); // Re-run the function on window resize
-    });
+   
 });
 
                 console.log('Entering home');
             },
             afterEnter(data) {
                 console.log('Entered home');
-                // Custom code for the home namespace after the transition finishes
             }
         },
         {
@@ -722,7 +718,6 @@ barba.init({
             },
             afterEnter(data) {
                 console.log('Entered meteor');
-                // Custom code for the meteor namespace after the transition finishes
             }
         },
         {
