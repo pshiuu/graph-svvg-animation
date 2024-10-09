@@ -615,7 +615,7 @@ barba.init({
         {
             namespace: 'home',
             beforeEnter(data) {
-                $(document).ready(function() {
+             $(document).ready(function() {
     
     var $cards = $('.card-home');
 
@@ -627,29 +627,21 @@ barba.init({
         return { x: randomX, y: randomY };
     }
 
-    
-    function getRandomScale() {
-        return Math.random() * (1.5 - 1) + 1; // Random number between 1 and 2
-    }
-
-    // Function to pop in, stay visible, disappear, then pop in again at a different position
+    // Function to pop in (fade in), stay visible, fade out, then pop in again at a different position
     function popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight) {
-        // Get random position and random scale for the card
+        // Get random position for the card
         var randomPosition = getRandomPosition(containerWidth, containerHeight, cardWidth, cardHeight);
-        var randomScale = getRandomScale();
 
-        // Apply the random position and random scale
+        // Apply the random position
         $card.css({
-            'transform': 'translate(' + randomPosition.x + 'px, ' + randomPosition.y + 'px) scale(' + randomScale + ')'
-        }).show(); // Ensure the card is visible
+            'transform': 'translate(' + randomPosition.x + 'px, ' + randomPosition.y + 'px)'
+        }).fadeIn(1000); // Fade in over 1 second
 
-        // After 10 seconds, scale out (disappear)
+        // After 10 seconds, fade out
         setTimeout(function() {
-            $card.css({
-                'transform': 'scale(0)' // Scale down to disappear
-            });
+            $card.fadeOut(1000); // Fade out over 1 second
 
-            // After scaling out, reappear in a new position after 2 seconds
+            // After fading out, reappear in a new position after 2 seconds
             setTimeout(function() {
                 popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
             }, 5000); // Reappear after 5 seconds
@@ -677,9 +669,9 @@ barba.init({
 
     // Call the function to initiate the pop in/out effect
     initiatePopInOutCycle();
-
-   
+    
 });
+
 
                 console.log('Entering home');
             },
