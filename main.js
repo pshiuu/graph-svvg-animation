@@ -615,7 +615,7 @@ barba.init({
         {
             namespace: 'home',
             beforeEnter(data) {
-             $(document).ready(function() {
+            $(document).ready(function() {
     
     var $cards = $('.card-home');
 
@@ -628,23 +628,30 @@ barba.init({
     }
 
     // Function to pop in (fade in), stay visible, fade out, then pop in again at a different position
-    function popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight) {
+    function popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight, isFirstCard = false) {
         // Get random position for the card
         var randomPosition = getRandomPosition(containerWidth, containerHeight, cardWidth, cardHeight);
 
         // Apply the random position
         $card.css({
             'transform': 'translate(' + randomPosition.x + 'px, ' + randomPosition.y + 'px)'
-        }).fadeIn(1000); // Fade in over 1 second
+        });
+
+        // If it's the first card, make it appear quickly
+        if (isFirstCard) {
+            $card.fadeIn(1000); // Quick fade in for the first card
+        } else {
+            $card.fadeIn(4000); // Slow fade in for subsequent cards (4 seconds)
+        }
 
         // After 10 seconds, fade out
         setTimeout(function() {
-            $card.fadeOut(1000); // Fade out over 1 second
+            $card.fadeOut(4000); // Slow fade out (4 seconds)
 
             // After fading out, reappear in a new position after 2 seconds
             setTimeout(function() {
                 popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
-            }, 5000); // Reappear after 5 seconds
+            }, 6000); // Reappear after 6 seconds for a more relaxed effect
         }, 20000); // Stay visible for 20 seconds
     }
 
@@ -662,8 +669,9 @@ barba.init({
 
             // Apply a slight delay for each card to create a staggered effect
             setTimeout(function() {
-                popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight);
-            }, index * 1500); // Stagger the start of each card by 1.5 seconds
+                var isFirstCard = (index === 0); // Check if it's the first card
+                popInOutCard($card, containerWidth, containerHeight, cardWidth, cardHeight, isFirstCard);
+            }, index * 2000); // Stagger the start of each card by 2 seconds
         });
     }
 
