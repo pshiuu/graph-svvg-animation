@@ -723,7 +723,7 @@ barba.init({
         {
             namespace: 'work',
             beforeEnter(data) {
-                console.log('Entering work');
+                console.log('code is updated');
                   // Select all elements that have a 'data-vimeo-id' attribute
   const vimeoThumbnails = document.querySelectorAll('img[data-vimeo-id]');
 
