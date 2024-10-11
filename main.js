@@ -724,22 +724,26 @@ barba.init({
             namespace: 'work',
             beforeEnter(data) {
                 console.log('Entering work');
-                    const players = Array.from(document.querySelectorAll('.past-work-plyr-wrap .plyr-past')).map(p => {
-                        return new Plyr(p, {
-                            controls: [
-                                
-                                'play',  
-                                'progress', 
-                                'current-time', 
-                                'mute', 
-                                'airplay', 
-                                'fullscreen'
-                            ],
-                            autoplay: false,
-                            playsinline: false,
-                            ratio: '16:9'
-                        });
-                    });
+                  // Select all elements that have a 'data-vimeo-id' attribute
+  const vimeoThumbnails = document.querySelectorAll('img[data-vimeo-id]');
+
+  vimeoThumbnails.forEach(thumbnail => {
+    // Get the videoId from the data attribute
+    const videoId = thumbnail.getAttribute('data-vimeo-id');
+
+    if (videoId) {
+      // Fetch Vimeo thumbnail using the API
+      fetch(`https://vimeo.com/api/v2/video/${videoId}.json`)
+        .then(response => response.json())
+        .then(data => {
+          const thumbnailUrl = data[0].thumbnail_large; // Use large thumbnail size
+          
+          // Set the src of the current thumbnail image
+          thumbnail.src = thumbnailUrl;
+        })
+        .catch(error => console.error('Error fetching Vimeo thumbnail:', error));
+    }
+  });
                     
             },
             afterEnter(data) {
