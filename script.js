@@ -820,6 +820,9 @@ barba.init({
                             'mute', 
                             'fullscreen',
                             'settings',
+                            'progress',
+                            'current-time',
+                            
                         ],
                         autoplay: false,
                         playsinline: false,
