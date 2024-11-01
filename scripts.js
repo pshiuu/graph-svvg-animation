@@ -806,6 +806,30 @@ barba.init({
         .catch(error => console.error('Error fetching Vimeo thumbnail:', error));
     }
   });
+                  var swipermeteor = new Swiper(".swiper.is-autoplay", {
+  slidesPerView: 1.5,
+  grabCursor: true,
+  speed: 5000,
+  spaceBetween: 30,
+  freeMode: true,
+  loop: true,
+  centeredSlides: true,
+  autoplay: {
+    delay: 0,
+    disableOnInteraction: false
+  },
+  breakpoints: {
+      767: {
+      slidesPerView: 2
+    },
+       991: {
+      slidesPerView: 3
+    },
+    1280: {
+      slidesPerView: 4
+    },
+  }
+});
                     
             },
             afterEnter(data) {
